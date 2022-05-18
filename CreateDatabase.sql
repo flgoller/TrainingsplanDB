@@ -23,7 +23,7 @@ CREATE TABLE Uebung
 CREATE TABLE Muskelgruppe
 (
     MuskelgruppeID INT NOT NULL IDENTITY PRIMARY KEY,
-    Bez INT NOT NULL
+    Bez VARCHAR(255) NOT NULL
 );
 CREATE TABLE TrainingsplanEnthaeltUebung
 (
