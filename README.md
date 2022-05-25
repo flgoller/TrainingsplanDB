@@ -1,7 +1,11 @@
 # TrainingsplanDB
 DB for Project in M153
-## ER Diagramm
-<img src="/Relationalesmodell.png" alt="Alt text" title="Optional title">
+
+## ER-Diagramm
+<img src="/Trainingsplan-erd.png" alt="Alt text" title="ER-Diagramm">
+
+## Relationales Modell der DB
+<img src="/Relationalesmodell.png" alt="Alt text" title="Relationales Modell">
 
 Diagramm mit Beschreibung der Felder:
 https://drawsql.app/trainingsplandb/diagrams/trainingsplan/embed
