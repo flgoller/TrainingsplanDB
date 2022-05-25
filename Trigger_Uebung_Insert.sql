@@ -1,7 +1,7 @@
 DROP trigger if exists CheckUebung;
 go
 
-CREATE TRIGGER CheckUebung ON Uebung FOR INSERT
+CREATE TRIGGER CheckUebung ON Uebung FOR INSERT, UPDATE
 AS BEGIN
 
 	if ((SELECT Count(Uebung.UebungID) FROM Uebung WHERE Uebung.Bez = (SELECT inserted.Bez FROM inserted)) > 1)
