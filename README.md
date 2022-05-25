@@ -1,7 +1,7 @@
 # TrainingsplanDB
 DB for Project in M153
 ## ER Diagramm
-<img src="/Reltionales Modell.png" alt="Alt text" title="Optional title">
+<img src="/Relationalesmodell.png" alt="Alt text" title="Optional title">
 
 Diagramm mit Beschreibung der Felder:
 https://drawsql.app/trainingsplandb/diagrams/trainingsplan/embed
@@ -20,5 +20,69 @@ Berechnung verwendete Muskelgruppen eines Trainingplans. (string Ausgabe mit Kom
 ### Select SQL
 Ausgabe von Traingsplan mit allen Übungen.
 
-## Erstellung der Datenbankstruktur
-https://github.com/flgoller/TrainingsplanDB/blob/90be5c867354ec24aafc69b2accfbd730185d074/CreateDatabase.sql
+## SQL-Statements
+
+### Erstellung der Datenbankstruktur
+```sql
+USE Master;
+GO
+DROP DATABASE IF EXISTS Trainingsplan
+GO
+CREATE DATABASE Trainingsplan
+GO
+USE Trainingsplan
+GO
+
+
+CREATE TABLE Trainingsplan
+(
+    TrainingsplandID INT NOT NULL IDENTITY PRIMARY KEY,
+    Bez VARCHAR(255) NOT NULL ,
+    ErstellDatum DATETIME NOT NULL
+);
+CREATE TABLE Uebung
+(
+    UebungID INT NOT NULL IDENTITY PRIMARY KEY,
+    Bez VARCHAR(255) NOT NULL ,
+    fk_MuskelgruppeID INT NOT NULL
+);
+CREATE TABLE Muskelgruppe
+(
+    MuskelgruppeID INT NOT NULL IDENTITY PRIMARY KEY,
+    Bez INT NOT NULL
+);
+CREATE TABLE TrainingsplanEnthaeltUebung
+(
+    TrainingsplanEnthaeltUebungID INT NOT NULL IDENTITY PRIMARY KEY,
+    Wiederholungen INT NOT NULL,
+    Saetze INT NOT NULL,
+    Gewicht DECIMAL(8, 2) NOT NULL,
+    Optional BIT NOT NULL,
+    fk_UebungID INT NOT NULL ,
+    fk_TrainingsplanID INT NOT NULL
+);
+GO
+ALTER TABLE
+Uebung ADD CONSTRAINT uebung_fk_muskelgruppeid_foreign FOREIGN KEY(fk_MuskelgruppeID) REFERENCES Muskelgruppe(MuskelgruppeID);
+ALTER TABLE
+TrainingsplanEnthaeltUebung ADD CONSTRAINT trainingsplanenthaeltuebung_fk_uebungid_foreign FOREIGN KEY(fk_UebungID) REFERENCES Uebung(UebungID);
+ALTER TABLE
+TrainingsplanEnthaeltUebung ADD CONSTRAINT trainingsplanenthaeltuebung_fk_trainingsplanid_foreign FOREIGN KEY(fk_TrainingsplanID) REFERENCES Trainingsplan(TrainingsplandID);
+GO
+```
+### Trigger
+```sql
+DROP trigger if exists CheckUebung;
+go
+
+CREATE TRIGGER CheckUebung ON Uebung FOR INSERT
+AS BEGIN
+
+	if ((SELECT Count(Uebung.UebungID) FROM Uebung WHERE Uebung.Bez = (SELECT inserted.Bez FROM inserted)) > 1)
+	begin
+		raiserror('Diese Übung ist bereits vorhanden', 11, 10);
+		rollback transaction;
+	END
+END
+
+```
