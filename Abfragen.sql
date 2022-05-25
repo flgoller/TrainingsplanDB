@@ -19,3 +19,5 @@ SELECT UebungID, Uebung.Bez as 'Übung' FROM Uebung
 LEFT JOIN TrainingsplanEnthaeltUebung ON TrainingsplanEnthaeltUebung.fk_UebungID = Uebung.UebungID
 WHERE TrainingsplanEnthaeltUebung.TrainingsplanEnthaeltUebungID IS NULL
 
+/* Eine Übung updaten */
+
