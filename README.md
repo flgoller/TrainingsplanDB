@@ -79,7 +79,7 @@ GO
 DROP trigger if exists CheckUebung;
 go
 
-CREATE TRIGGER CheckUebung ON Uebung FOR INSERT
+CREATE TRIGGER CheckUebung ON Uebung FOR INSERT, UPDATE
 AS BEGIN
 
 	if ((SELECT Count(Uebung.UebungID) FROM Uebung WHERE Uebung.Bez = (SELECT inserted.Bez FROM inserted)) > 1)
@@ -90,3 +90,21 @@ AS BEGIN
 END
 
 ```
+
+### Stored Procedure
+```sql
+DROP PROCEDURE if exists sp_CreateTrainingplan;
+go
+
+CREATE PROCEDURE sp_CreateTrainingplan
+ @bez varchar(50)
+AS BEGIN
+ INSERT INTO Trainingsplan VALUES(@bez, GETDATE());
+ RETURN 1;
+END
+GO
+
+-- EXEC sp_CreateTrainingplan 'Trainingsplan f�r Beine'
+
+```
+
