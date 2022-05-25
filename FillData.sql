@@ -60,7 +60,7 @@ GO
 INSERT INTO Trainingsplan (Bez, ErstellDatum)
 VALUES
 ('Ganzkörper', '2020-01-03'),
-('Leg day', '2020-04-20'),
+('Leg day', '2020-04-02'),
 ('Oberkörper', '2021-06-09')
 GO
 
@@ -69,7 +69,32 @@ DECLARE @LegDayPlan INT = (SELECT TrainingsplandID From Trainingsplan WHERE Trai
 DECLARE @OberkörperPlan INT = (SELECT TrainingsplandID From Trainingsplan WHERE Trainingsplan.Bez = 'Oberkörper');
 INSERT INTO TrainingsplanEnthaeltUebung (fk_TrainingsplanID, fk_UebungID, Saetze, Wiederholungen, Gewicht, Optional)
 VALUES
-(@GanzKörperPlan, (Select UebungId From Uebung Where Uebung.Bez = 'Bankdrücken'), 3, 10, 100, 0)
+(@GanzKörperPlan, (Select UebungId From Uebung Where Uebung.Bez = 'Kniebeugen'), 3, 10, 120, 0),
+(@GanzKörperPlan, (Select UebungId From Uebung Where Uebung.Bez = 'Kreuzheben'), 5, 6, 150, 0),
+(@GanzKörperPlan, (Select UebungId From Uebung Where Uebung.Bez = 'Klimmzug'), 3, 10, 0, 0),
+(@GanzKörperPlan, (Select UebungId From Uebung Where Uebung.Bez = 'Überzüge'), 3, 10, 70, 0),
+(@GanzKörperPlan, (Select UebungId From Uebung Where Uebung.Bez = 'Crunch'), 2, 25, 0, 0),
+(@GanzKörperPlan, (Select UebungId From Uebung Where Uebung.Bez = 'Dips'), 4, 12, 0, 0),
+(@GanzKörperPlan, (Select UebungId From Uebung Where Uebung.Bez = 'Schulterdrücken'), 3, 10, 40, 0),
+(@GanzKörperPlan, (Select UebungId From Uebung Where Uebung.Bez = 'Bankdrücken'), 3, 10, 10, 0),
+(@GanzKörperPlan, (Select UebungId From Uebung Where Uebung.Bez = 'Liegestütz'), 3, 50, 0, 1),
+
+(@LegDayPlan, (Select UebungId From Uebung Where Uebung.Bez = 'Kniebeugen'), 5, 8, 150, 0),
+(@LegDayPlan, (Select UebungId From Uebung Where Uebung.Bez = 'Ausfallschritt'), 3, 10, 60, 0),
+(@LegDayPlan, (Select UebungId From Uebung Where Uebung.Bez = 'Beinheben'), 3, 12, 70, 0),
+(@LegDayPlan, (Select UebungId From Uebung Where Uebung.Bez = 'Kreuzheben'), 5, 8, 180, 0),
+(@LegDayPlan, (Select UebungId From Uebung Where Uebung.Bez = 'Wadenheben'), 3, 12, 40, 0),
+
+(@OberkörperPlan, (Select UebungId From Uebung Where Uebung.Bez = 'Latzug'), 3, 12, 80, 0),
+(@OberkörperPlan, (Select UebungId From Uebung Where Uebung.Bez = 'Langhantel-Rudern'), 3, 10, 65, 0),
+(@OberkörperPlan, (Select UebungId From Uebung Where Uebung.Bez = 'Trizepsdrücken'), 3, 10, 20, 0),
+(@OberkörperPlan, (Select UebungId From Uebung Where Uebung.Bez = 'Curls'), 3, 10, 18, 0),
+(@OberkörperPlan, (Select UebungId From Uebung Where Uebung.Bez = 'Seitenheben'), 3, 12, 40, 0),
+(@OberkörperPlan, (Select UebungId From Uebung Where Uebung.Bez = 'Schulterdrücken'), 3, 12, 50, 0),
+(@OberkörperPlan, (Select UebungId From Uebung Where Uebung.Bez = 'Bankdrücken'), 3, 12, 90, 0),
+(@OberkörperPlan, (Select UebungId From Uebung Where Uebung.Bez = 'Fliegende'), 3, 12, 20, 1),
+(@OberkörperPlan, (Select UebungId From Uebung Where Uebung.Bez = 'Kabelzug-Fliegende'), 3, 12, 20, 1),
+
 
 
 
