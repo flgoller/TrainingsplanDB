@@ -8,26 +8,26 @@ RETURNS VARCHAR(MAX)
 AS
 BEGIN
     declare @Result VARCHAR(max)
-    declare @Enumerator table (id int)
+    declare @Enumerator TABLE (id INT)
 
-    insert into @Enumerator
+    INSERT INTO @Enumerator
     SELECT DISTINCT Muskelgruppe.MuskelgruppeID
-    from Muskelgruppe
+    FROM Muskelgruppe
     JOIN Uebung ON Uebung.fk_MuskelgruppeID = Muskelgruppe.MuskelgruppeID
-    JOIN TrainingsplanEnthaeltUebung on TrainingsplanEnthaeltUebung.fk_UebungID = Uebung.UebungID
+    JOIN TrainingsplanEnthaeltUebung ON TrainingsplanEnthaeltUebung.fk_UebungID = Uebung.UebungID
     WHERE fk_TrainingsplanID = @trainingsPlanId
 
-    declare @id int
-    while exists (select 1 from @Enumerator)
-    begin
-        select top 1
+    DECLARE @id INT
+    WHILE EXISTS (SELECT 1 FROM @Enumerator)
+    BEGIN
+        SELECT TOP 1
             @id = id
-        from @Enumerator
+        FROM @Enumerator
 
-        SET @Result = CONCAT(@Result, ', ', (Select Muskelgruppe.Bez From Muskelgruppe Where Muskelgruppe.MuskelgruppeID = @id))
+        SET @Result = CONCAT(@Result, ', ', (SELECT Muskelgruppe.Bez FROM Muskelgruppe WHERE Muskelgruppe.MuskelgruppeID = @id))
 
-        delete from @Enumerator where id = @id
-    end
+        DELETE FROM @Enumerator WHERE id = @id
+    END
 
     RETURN right(@Result, len(@Result)-2);
 END;
