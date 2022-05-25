@@ -93,7 +93,7 @@ VALUES
 (@OberkörperPlan, (Select UebungId From Uebung Where Uebung.Bez = 'Schulterdrücken'), 3, 12, 50, 0),
 (@OberkörperPlan, (Select UebungId From Uebung Where Uebung.Bez = 'Bankdrücken'), 3, 12, 90, 0),
 (@OberkörperPlan, (Select UebungId From Uebung Where Uebung.Bez = 'Fliegende'), 3, 12, 20, 1),
-(@OberkörperPlan, (Select UebungId From Uebung Where Uebung.Bez = 'Kabelzug-Fliegende'), 3, 12, 20, 1),
+(@OberkörperPlan, (Select UebungId From Uebung Where Uebung.Bez = 'Kabelzug-Fliegende'), 3, 12, 20, 1)
 
 
 
