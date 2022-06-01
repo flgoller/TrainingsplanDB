@@ -13,8 +13,8 @@ BEGIN
     INSERT INTO @Enumerator
     SELECT DISTINCT Muskelgruppe.MuskelgruppeID
     FROM Muskelgruppe
-    JOIN Uebung ON Uebung.fk_MuskelgruppeID = Muskelgruppe.MuskelgruppeID
-    JOIN TrainingsplanEnthaeltUebung ON TrainingsplanEnthaeltUebung.fk_UebungID = Uebung.UebungID
+        JOIN Uebung ON Uebung.fk_MuskelgruppeID = Muskelgruppe.MuskelgruppeID
+        JOIN TrainingsplanEnthaeltUebung ON TrainingsplanEnthaeltUebung.fk_UebungID = Uebung.UebungID
     WHERE fk_TrainingsplanID = @trainingsPlanId
 
     DECLARE @id INT
@@ -24,7 +24,9 @@ BEGIN
             @id = id
         FROM @Enumerator
 
-        SET @Result = CONCAT(@Result, ', ', (SELECT Muskelgruppe.Bez FROM Muskelgruppe WHERE Muskelgruppe.MuskelgruppeID = @id))
+        SET @Result = CONCAT(@Result, ', ', (SELECT Muskelgruppe.Bez
+        FROM Muskelgruppe
+        WHERE Muskelgruppe.MuskelgruppeID = @id))
 
         DELETE FROM @Enumerator WHERE id = @id
     END
