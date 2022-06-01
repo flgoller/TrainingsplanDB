@@ -26,7 +26,7 @@ DECLARE @BrustID INT = (SELECT MuskelgruppeId From Muskelgruppe WHERE Muskelgrup
 
 INSERT INTO Uebung (Bez, fk_MuskelgruppeID)
 VALUES
-('Kniebeugen2', @BeineID),
+('Kniebeugen', @BeineID),
 ('Ausfallschritt', @BeineID),
 ('Beinheben', @BeineID),
 ('Kreuzheben', @BeineID),
