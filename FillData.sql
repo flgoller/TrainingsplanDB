@@ -1,6 +1,12 @@
 Use Trainingsplan
 Go
 
+DELETE FROM Muskelgruppe;
+DELETE FROM Trainingsplan;
+DELETE FROM TrainingsplanEnthaeltUebung;
+DELETE FROM Uebung;
+GO
+
 INSERT INTO Muskelgruppe (Bez)
 VALUES 
 ('Beine'), 
@@ -20,7 +26,7 @@ DECLARE @BrustID INT = (SELECT MuskelgruppeId From Muskelgruppe WHERE Muskelgrup
 
 INSERT INTO Uebung (Bez, fk_MuskelgruppeID)
 VALUES
-('Kniebeugen', @BeineID),
+('Kniebeugen2', @BeineID),
 ('Ausfallschritt', @BeineID),
 ('Beinheben', @BeineID),
 ('Kreuzheben', @BeineID),
