@@ -51,34 +51,60 @@ go
 
 CREATE TRIGGER CheckUebungOnInsert ON Uebung INSTEAD OF INSERT
 AS BEGIN
-	DECLARE @AnzahlDoppelteUebungen INT = (SELECT COUNT(*) as Anz
-	FROM (SELECT Uebung.Bez FROM Uebung INTERSECT SELECT inserted.bez From inserted) I);
+    DECLARE @AnzahlDoppelteUebungen INT = (SELECT COUNT(*) as Anz
+    FROM (                        SELECT Uebung.Bez
+            FROM Uebung
+        INTERSECT
+            SELECT inserted.bez
+            From inserted) I);
 
-	if (@AnzahlDoppelteUebungen > 0)
+    if (@AnzahlDoppelteUebungen > 0)
 	begin
-		DECLARE @DoppelteUebungen VARCHAR(max) = (SELECT STRING_AGG (Bez, ',') AS bezeichnungen FROM (SELECT Uebung.Bez FROM Uebung INTERSECT SELECT inserted.bez From inserted) I)
-		raiserror('Folgende Übungen sind bereits vorhanden : %s', 11, 10, @DoppelteUebungen);
-		rollback transaction;
-	END
+        DECLARE @DoppelteUebungen VARCHAR(max) = (SELECT STRING_AGG (Bez, ',') AS bezeichnungen
+        FROM (                                SELECT Uebung.Bez
+                FROM Uebung
+            INTERSECT
+                SELECT inserted.bez
+                From inserted) I)
+        raiserror('Folgende Übungen sind bereits vorhanden : %s', 11, 10, @DoppelteUebungen);
+    END
 	else
-		Insert INTO Uebung (Bez, fk_MuskelgruppeID) Select inserted.Bez, inserted.fk_MuskelgruppeID FROM inserted
+		Insert INTO Uebung
+        (Bez, fk_MuskelgruppeID)
+    Select inserted.Bez, inserted.fk_MuskelgruppeID
+    FROM inserted
 END
 GO
 
 DROP trigger if exists CheckUebungOnUpdate;
 go
 
-CREATE TRIGGER CheckUebungOnUpdate ON Uebung FOR UPDATE
+CREATE TRIGGER CheckUebungOnUpdate ON Uebung INSTEAD OF UPDATE
 AS BEGIN
-	DECLARE @AnzahlDoppelteUebungen INT = (SELECT COUNT(*) as Anz
-	FROM (SELECT deleted.Bez FROM deleted INTERSECT SELECT inserted.bez From inserted) I);
+    DECLARE @AnzahlDoppelteUebungen INT = (SELECT COUNT(*) as Anz
+    FROM (                        SELECT Uebung.Bez
+            FROM Uebung
+        INTERSECT
+            SELECT inserted.bez
+            From inserted) I);
 
-	if (@AnzahlDoppelteUebungen > 0)
-	BEGIN
-		DECLARE @DoppelteUebungen VARCHAR(max) = (SELECT STRING_AGG (Bez, ',') AS bezeichnungen FROM (SELECT deleted.Bez FROM deleted INTERSECT SELECT inserted.bez From inserted) I)
-		raiserror('Folgende Übungen sind bereits vorhanden : %s', 11, 10, @DoppelteUebungen);
-		rollback transaction;
-	END
+    DECLARE @Bez VARCHAR(MAX), @fk_MuskelgruppeId INT, @UebungId INT
+    SELECT @Bez = INSERTED.bez, @fk_MuskelgruppeId = INSERTED.fk_MuskelgruppeID, @UebungId = INSERTED.UebungId
+    FROM INSERTED
+
+
+    if (@AnzahlDoppelteUebungen > 0 AND UPDATE(Bez))
+	begin
+        DECLARE @DoppelteUebungen VARCHAR(max) = (SELECT STRING_AGG (Bez, ',') AS bezeichnungen
+        FROM (                                SELECT Uebung.Bez
+                FROM Uebung
+            INTERSECT
+                SELECT inserted.bez
+                From inserted) I)
+        raiserror('Folgende Übungen sind bereits vorhanden : %s', 11, 10, @DoppelteUebungen);
+    END
+	else
+		UPDATE Uebung SET Uebung.bez = @bez, Uebung.fk_MuskelgruppeId = @fk_MuskelgruppeId WHERE UebungId = @UebungId;
 END
 GO
 
@@ -101,15 +127,22 @@ BEGIN
     WHERE fk_TrainingsplanID = @trainingsPlanId
 
     DECLARE @id INT
-    WHILE EXISTS (SELECT 1 FROM @Enumerator)
+    WHILE EXISTS (SELECT 1
+    FROM @Enumerator)
     BEGIN
         SELECT TOP 1
             @id = id
         FROM @Enumerator
 
-        SET @Result = CONCAT(@Result, ', ', (SELECT Muskelgruppe.Bez
-        FROM Muskelgruppe
-        WHERE Muskelgruppe.MuskelgruppeID = @id))
+        SET @Result = CONCAT(
+        @Result, 
+        ', ',
+        (SELECT Muskelgruppe.Bez FROM Muskelgruppe WHERE Muskelgruppe.MuskelgruppeID = @id),
+        '(',
+        (SELECT COUNT(Uebung.fk_MuskelgruppeID) FROM Uebung JOIN TrainingsplanEnthaeltUebung ON TrainingsplanEnthaeltUebung.fk_UebungID = Uebung.UebungID
+        WHERE TrainingsplanEnthaeltUebung.fk_TrainingsplanID = @trainingsPlanId
+        AND Uebung.fk_MuskelgruppeID = @id),
+        ')')
 
         DELETE FROM @Enumerator WHERE id = @id
     END
