@@ -22,6 +22,15 @@ GO
 
 /* Eine Übung updaten die bereits existiert */
 /* -> Sollte fehlschlagen, da Ausfallschritt bereits exisitert*/
+SELECT * FROM Uebung WHERE Bez = 'Kniebeugen' 
+GO
+UPDATE Uebung SET fk_MuskelgruppeID = 2 WHERE Bez = 'Kniebeugen'
+GO
+SELECT * FROM Uebung WHERE Bez = 'Kniebeugen' 
+GO
+
+/* Eine Übung updaten die bereits existiert */
+/* -> Sollte fehlschlagen, da Ausfallschritt bereits exisitert*/
 UPDATE Uebung SET Bez = 'Ausfallschritt' WHERE Bez = 'Kniebeugen'
 GO
 
