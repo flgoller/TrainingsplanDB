@@ -345,7 +345,11 @@ GO
 
 /* Eine Übung updaten wenn die neue Bezeichnung bereits existiert */
 /* -> Sollte fehlschlagen, da Ausfallschritt bereits exisitert*/
+SELECT * FROM Uebung WHERE Bez = 'Kniebeugen'
+GO
 UPDATE Uebung SET Bez = 'Ausfallschritt' WHERE Bez = 'Kniebeugen'
+GO
+SELECT * FROM Uebung WHERE Bez = 'Kniebeugen'
 GO
 
 /* Übersicht aller Plane*/
