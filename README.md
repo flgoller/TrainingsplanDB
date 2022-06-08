@@ -53,7 +53,7 @@ CREATE TABLE Uebung
 CREATE TABLE Muskelgruppe
 (
     MuskelgruppeID INT NOT NULL IDENTITY PRIMARY KEY,
-    Bez INT NOT NULL
+    Bez VARCHAR(255) NOT NULL
 );
 CREATE TABLE TrainingsplanEnthaeltUebung
 (
@@ -73,45 +73,147 @@ TrainingsplanEnthaeltUebung ADD CONSTRAINT trainingsplanenthaeltuebung_fk_uebung
 ALTER TABLE
 TrainingsplanEnthaeltUebung ADD CONSTRAINT trainingsplanenthaeltuebung_fk_trainingsplanid_foreign FOREIGN KEY(fk_TrainingsplanID) REFERENCES Trainingsplan(TrainingsplandID);
 GO
+
 ```
 ### Trigger
 ```sql
-DROP trigger if exists CheckUebung;
+/* Trigger erstellen */
+DROP trigger if exists CheckUebungOnInsert;
 go
 
-CREATE TRIGGER CheckUebung ON Uebung FOR INSERT, UPDATE
+CREATE TRIGGER CheckUebungOnInsert ON Uebung INSTEAD OF INSERT
 AS BEGIN
+    DECLARE @AnzahlDoppelteUebungen INT = (SELECT COUNT(*) as Anz
+    FROM (                        SELECT Uebung.Bez
+            FROM Uebung
+        INTERSECT
+            SELECT inserted.bez
+            From inserted) I);
 
-	if ((SELECT Count(Uebung.UebungID) FROM Uebung WHERE Uebung.Bez = (SELECT inserted.Bez FROM inserted)) > 1)
+    if (@AnzahlDoppelteUebungen > 0)
 	begin
-		raiserror('Diese Übung ist bereits vorhanden', 11, 10);
-		rollback transaction;
-	END
+        DECLARE @DoppelteUebungen VARCHAR(max) = (SELECT STRING_AGG (Bez, ',') AS bezeichnungen
+        FROM (                                SELECT Uebung.Bez
+                FROM Uebung
+            INTERSECT
+                SELECT inserted.bez
+                From inserted) I)
+        raiserror('Folgende Übungen sind bereits vorhanden : %s', 11, 10, @DoppelteUebungen);
+    END
+	else
+		Insert INTO Uebung
+        (Bez, fk_MuskelgruppeID)
+    Select inserted.Bez, inserted.fk_MuskelgruppeID
+    FROM inserted
 END
+GO
+
+DROP trigger if exists CheckUebungOnUpdate;
+go
+
+CREATE TRIGGER CheckUebungOnUpdate ON Uebung INSTEAD OF UPDATE
+AS BEGIN
+    DECLARE @AnzahlDoppelteUebungen INT = (SELECT COUNT(*) as Anz
+    FROM (                        SELECT Uebung.Bez
+            FROM Uebung
+        INTERSECT
+            SELECT inserted.bez
+            From inserted) I);
+
+    DECLARE @Bez VARCHAR(MAX), @fk_MuskelgruppeId INT, @UebungId INT
+    SELECT @Bez = INSERTED.bez, @fk_MuskelgruppeId = INSERTED.fk_MuskelgruppeID, @UebungId = INSERTED.UebungId
+    FROM INSERTED
+
+
+    if (@AnzahlDoppelteUebungen > 0 AND UPDATE(Bez))
+	begin
+        DECLARE @DoppelteUebungen VARCHAR(max) = (SELECT STRING_AGG (Bez, ',') AS bezeichnungen
+        FROM (                                SELECT Uebung.Bez
+                FROM Uebung
+            INTERSECT
+                SELECT inserted.bez
+                From inserted) I)
+        raiserror('Folgende Übungen sind bereits vorhanden : %s', 11, 10, @DoppelteUebungen);
+    END
+	else
+		UPDATE Uebung SET Uebung.bez = @bez, Uebung.fk_MuskelgruppeId = @fk_MuskelgruppeId WHERE UebungId = @UebungId;
+END
+GO
 
 ```
 
 ### Stored Procedure
 ```sql
+
+/* Funktion erstellen */
+Drop FUNCTION IF EXISTS dbo.GetAllMuskelGruppenOfTrainingsplan;
+GO
+CREATE FUNCTION dbo.GetAllMuskelGruppenOfTrainingsplan (@trainingsPlanId INT) 
+RETURNS VARCHAR(MAX)
+AS
+BEGIN
+    declare @Result VARCHAR(max)
+    declare @Enumerator TABLE (id INT)
+
+    INSERT INTO @Enumerator
+    SELECT DISTINCT Muskelgruppe.MuskelgruppeID
+    FROM Muskelgruppe
+        JOIN Uebung ON Uebung.fk_MuskelgruppeID = Muskelgruppe.MuskelgruppeID
+        JOIN TrainingsplanEnthaeltUebung ON TrainingsplanEnthaeltUebung.fk_UebungID = Uebung.UebungID
+    WHERE fk_TrainingsplanID = @trainingsPlanId
+
+    DECLARE @id INT
+    WHILE EXISTS (SELECT 1
+    FROM @Enumerator)
+    BEGIN
+        SELECT TOP 1
+            @id = id
+        FROM @Enumerator
+
+        SET @Result = CONCAT(
+        @Result, 
+        ', ',
+        (SELECT Muskelgruppe.Bez FROM Muskelgruppe WHERE Muskelgruppe.MuskelgruppeID = @id),
+        '(',
+        (SELECT COUNT(Uebung.fk_MuskelgruppeID) FROM Uebung JOIN TrainingsplanEnthaeltUebung ON TrainingsplanEnthaeltUebung.fk_UebungID = Uebung.UebungID
+        WHERE TrainingsplanEnthaeltUebung.fk_TrainingsplanID = @trainingsPlanId
+        AND Uebung.fk_MuskelgruppeID = @id),
+        ')')
+
+        DELETE FROM @Enumerator WHERE id = @id
+    END
+
+    RETURN right(@Result, len(@Result)-2);
+END;
+GO
+
+
+/* Prozedur Trainingsplan erstellen */
 DROP PROCEDURE if exists sp_CreateTrainingplan;
 go
 
 CREATE PROCEDURE sp_CreateTrainingplan
- @bez varchar(50)
-AS BEGIN
- INSERT INTO Trainingsplan VALUES(@bez, GETDATE());
- RETURN 1;
+    @bez varchar(50)
+AS
+BEGIN
+    INSERT INTO Trainingsplan
+        (Bez, ErstellDatum)
+    VALUES(@bez, GETDATE());
+    RETURN 1;
 END
 GO
-
--- EXEC sp_CreateTrainingplan 'Trainingsplan f�r Beine'
-
 ```
 
 ### Beispieldaten
 ```sql
 Use Trainingsplan
 Go
+
+DELETE FROM Muskelgruppe;
+DELETE FROM Trainingsplan;
+DELETE FROM TrainingsplanEnthaeltUebung;
+DELETE FROM Uebung;
+GO
 
 INSERT INTO Muskelgruppe (Bez)
 VALUES 
@@ -206,12 +308,12 @@ VALUES
 (@OberkörperPlan, (Select UebungId From Uebung Where Uebung.Bez = 'Bankdrücken'), 3, 12, 90, 0),
 (@OberkörperPlan, (Select UebungId From Uebung Where Uebung.Bez = 'Fliegende'), 3, 12, 20, 1),
 (@OberkörperPlan, (Select UebungId From Uebung Where Uebung.Bez = 'Kabelzug-Fliegende'), 3, 12, 20, 1)
+
 ```
 
 ### Abfragen
 ```sql
 /* Alle Übungen des Ganzkörperplans */
-
 SELECT 
 Uebung.Bez as 'Übung', 
 TrainingsplanEnthaeltUebung.Saetze AS 'Sätze', 
@@ -224,13 +326,31 @@ JOIN TrainingsplanEnthaeltUebung ON TrainingsplanEnthaeltUebung.fk_Trainingsplan
 JOIN Uebung ON Uebung.UebungID = TrainingsplanEnthaeltUebung.fk_UebungID
 JOIN Muskelgruppe ON Muskelgruppe.MuskelgruppeID = Uebung.fk_MuskelgruppeID
 WHERE Trainingsplan.Bez = 'Ganzkörper'
+GO
 
 /* Übungen, welche keinem Plan zugewiesen sind anzeigen */
 
 SELECT UebungID, Uebung.Bez as 'Übung' FROM Uebung
 LEFT JOIN TrainingsplanEnthaeltUebung ON TrainingsplanEnthaeltUebung.fk_UebungID = Uebung.UebungID
 WHERE TrainingsplanEnthaeltUebung.TrainingsplanEnthaeltUebungID IS NULL
+GO
 
+/* Eine Übung updaten */
+SELECT * FROM Uebung WHERE Bez = 'Kniebeugen' 
+GO
+UPDATE Uebung SET fk_MuskelgruppeID = 2 WHERE Bez = 'Kniebeugen'
+GO
+SELECT * FROM Uebung WHERE Bez = 'Kniebeugen' 
+GO
+
+/* Eine Übung updaten wenn die neue Bezeichnung bereits existiert */
+/* -> Sollte fehlschlagen, da Ausfallschritt bereits exisitert*/
+UPDATE Uebung SET Bez = 'Ausfallschritt' WHERE Bez = 'Kniebeugen'
+GO
+
+/* Übersicht aller Plane*/
+SELECT Trainingsplan.Bez as [Trainingsplan], Trainingsplan.ErstellDatum as [Erstellt am], dbo.GetAllMuskelGruppenOfTrainingsplan(Trainingsplan.TrainingsplandID) AS [Muskelgruppen] FROM Trainingsplan
+GO
 
 ```
 
