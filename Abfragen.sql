@@ -20,8 +20,7 @@ LEFT JOIN TrainingsplanEnthaeltUebung ON TrainingsplanEnthaeltUebung.fk_UebungID
 WHERE TrainingsplanEnthaeltUebung.TrainingsplanEnthaeltUebungID IS NULL
 GO
 
-/* Eine Übung updaten die bereits existiert */
-/* -> Sollte fehlschlagen, da Ausfallschritt bereits exisitert*/
+/* Eine Übung updaten */
 SELECT * FROM Uebung WHERE Bez = 'Kniebeugen' 
 GO
 UPDATE Uebung SET fk_MuskelgruppeID = 2 WHERE Bez = 'Kniebeugen'
@@ -29,7 +28,7 @@ GO
 SELECT * FROM Uebung WHERE Bez = 'Kniebeugen' 
 GO
 
-/* Eine Übung updaten die bereits existiert */
+/* Eine Übung updaten wenn die neue Bezeichnung bereits existiert */
 /* -> Sollte fehlschlagen, da Ausfallschritt bereits exisitert*/
 UPDATE Uebung SET Bez = 'Ausfallschritt' WHERE Bez = 'Kniebeugen'
 GO
