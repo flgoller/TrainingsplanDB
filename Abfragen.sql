@@ -36,3 +36,8 @@ GO
 /* Übersicht aller Plane*/
 SELECT Trainingsplan.Bez as [Trainingsplan], Trainingsplan.ErstellDatum as [Erstellt am], dbo.GetAllMuskelGruppenOfTrainingsplan(Trainingsplan.TrainingsplandID) AS [Muskelgruppen] FROM Trainingsplan
 GO
+
+/* Ein Trainingsplan via Stored Procedure erstellen und danach ausgeben */
+DECLARE @bez varchar(55) = 'Pull Day'
+EXEC sp_CreateTrainingplan @bez
+SELECT * FROM Trainingsplan WHERE Trainingsplan.Bez = @bez
